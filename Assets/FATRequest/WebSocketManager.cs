@@ -79,30 +79,6 @@ namespace FATRequest{
             bestHttpSocket.Close();
         }
         
-//        private void AddCustomHeaderFields()
-//        {
-//            StringBuilder sb = new StringBuilder();
-//            switch (serializationType)
-//            {
-//                case SerializationType.Json:
-//                    sb.Append("jsx_json");
-//                    break;
-//                case SerializationType.Protobuf:
-//                    sb.Append("gpb");
-//                    break;
-//                case SerializationType.MsgPack:
-//                    sb.Append("msgpack");
-//                    break;
-//            }
-//            
-//            httpReq.AddHeader("Proto",sb.ToString());
-//            httpReq.AddHeader("MsgCarrier","false");
-//            httpReq.AddHeader("Appid","Appid");
-//            httpReq.AddHeader("Time",GetTimeStampSeconds());
-//            httpReq.AddHeader("Pver",DeviceInfo.appver);
-//            httpReq.AddHeader("Sign","Sign");
-//            httpReq.AddHeader("Session","Session");
-//        }
         
         //初始化的时候建立一条长连接
         public void Connect()
@@ -159,106 +135,7 @@ namespace FATRequest{
         /// <summary>
         ///  Called when a new binary message is received from the server.
         /// </summary>
-        private void OnBinaryReceived(WebSocket websocket, byte[] data)+
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        private void OnBinaryReceived(WebSocket websocket, byte[] data)
         {
             Debug.Log("this is received data");
             ByteBuffer buffer = new ByteBuffer(data);
