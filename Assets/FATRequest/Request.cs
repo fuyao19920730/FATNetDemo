@@ -6,28 +6,19 @@ using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace FATRequest
 {
-    public enum ProtocolType
-    {
-        Http,
-        Websocket
-    }
+    
 
-    public enum SerializationType
-    {
-        Json,
-        ProtoBuffer
-    }
+    
 
     
     public delegate void OnRequestFinishedDelegate(Request request,object response);
 
     public class Request
     {        
-        public string serverUrl;
 
-        private string message;
+        private MessagesIDS messageId;
         
-        private object parameters;
+        public object parameters;
         
         private ProtocolType protocolType;
 
@@ -35,12 +26,23 @@ namespace FATRequest
 
         public FATHttpMethods httpMethod;
 
-
-        //接受请求的配置参数
-        public Request(string message,object parameters,ProtocolType protocolType,SerializationType serializationType)
+        /// <summary>
+        /// 在发送websocket消息之前,务必要先确保建立一条连接
+        /// </summary>
+        public static void EstablishWebsocketConnect()
         {
-            this.message = message;
-            this.parameters = parameters;
+            WebSocketManager.GetInstance().Connect();
+        }
+
+        public static void CloseWebsocketConnect()
+        {
+            WebSocketManager.GetInstance().CloseConnect();
+        }
+        
+        //接受请求的配置参数
+        public Request(MessagesIDS message,ProtocolType protocolType,SerializationType serializationType)
+        {
+            this.messageId = message;
             this.protocolType = protocolType;
             this.serializationType = serializationType;
         }
@@ -51,13 +53,13 @@ namespace FATRequest
             switch (protocolType)
             {
                 case ProtocolType.Http:
-                    HttpRequestManager httpRequestManager = new HttpRequestManager(serverUrl ?? NetConfig.defaultHttpHost);
+                    HttpRequestManager httpRequestManager = new HttpRequestManager("http://" + NetConfig.Host);
                     httpRequestManager.parameters = parameters;
                     httpRequestManager.methods = httpMethod;
                     httpRequestManager.response = (requst, response) =>
                     {
                         List<Action<object>> responses = null;
-                        RequestManager.GetManager().Responses.TryGetValue(message, out responses);
+                        RequestManager.GetManager().Responses.TryGetValue(messageId.ToString(), out responses);
                         if (responses != null)
                         {
                             foreach (Action<object> action in responses)
@@ -70,6 +72,10 @@ namespace FATRequest
                     break;
                 case ProtocolType.Websocket:
                     WebSocketManager webSocketManager = WebSocketManager.GetInstance();
+                    webSocketManager.parameters = parameters;
+                    webSocketManager.messageId = messageId;
+                    webSocketManager.serializationType = serializationType;
+                    webSocketManager.Send();
                     break;
                 default:
                     break;

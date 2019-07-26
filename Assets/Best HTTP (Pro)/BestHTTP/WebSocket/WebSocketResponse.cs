@@ -525,7 +525,6 @@ namespace BestHTTP.WebSocket
                 try
                 {
                     Send(new WebSocketFrame(this.WebSocket, WebSocketFrameTypes.Ping, Encoding.UTF8.GetBytes(string.Empty)));
-                    Debug.LogError("发送心跳包");
                 }
                 catch
                 {

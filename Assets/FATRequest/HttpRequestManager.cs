@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine;
 using BestHTTP;
 
@@ -26,9 +27,9 @@ namespace FATRequest
 
         public OnHttpFinishedDelegate response;
         private readonly HTTPRequest httpReq;
-        public FATHttpMethods methods;
+        public FATHttpMethods methods = FATHttpMethods.Post;
         public object parameters;
-        public SerializationType serializationType; 
+        public SerializationType serializationType = SerializationType.Json; 
 
         public HttpRequestManager(string url)
         {
@@ -39,6 +40,8 @@ namespace FATRequest
         {
             httpReq.MethodType = ConvertMethod(methods);
             httpReq.RawData = GetRawData();
+            
+            AddCustomHeaderFields();
             httpReq.Send();
         }
         
@@ -89,7 +92,7 @@ namespace FATRequest
                 case SerializationType.Json:
                     rawData = JsonTool.JsonDataFromObject(parameters);
                     break;
-                case SerializationType.ProtoBuffer:
+                case SerializationType.Protobuf:
                     break;
                 default:
                     break;
@@ -106,13 +109,46 @@ namespace FATRequest
                 case SerializationType.Json:
                     obj = JsonTool.ObjectFromJsonData(data);
                     break;
-                case SerializationType.ProtoBuffer:
+                case SerializationType.Protobuf:
                     
                     break;
                 default:
                     break;
             }
             return obj; 
+        }
+
+        //这些请求头里面的字段,是与服务器协商后,每次http请求比传的
+        private void AddCustomHeaderFields()
+        {
+            StringBuilder sb = new StringBuilder();
+            switch (serializationType)
+            {
+                case SerializationType.Json:
+                    sb.Append("jsx_json");
+                    break;
+                case SerializationType.Protobuf:
+                    sb.Append("gpb");
+                    break;
+                case SerializationType.MsgPack:
+                    sb.Append("msgpack");
+                    break;
+            }
+            
+            httpReq.AddHeader("Proto",sb.ToString());
+            httpReq.AddHeader("MsgCarrier","false");
+            httpReq.AddHeader("Appid","Appid");
+            httpReq.AddHeader("Time",GetTimeStampSeconds());
+            httpReq.AddHeader("Pver",DeviceInfo.appver);
+            httpReq.AddHeader("Sign","Sign");
+            httpReq.AddHeader("Session","Session");
+        }
+        
+        private string GetTimeStampSeconds()
+        {
+            TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            long ret = Convert.ToInt64(ts.TotalSeconds);
+            return ret.ToString();
         }
     }
 }

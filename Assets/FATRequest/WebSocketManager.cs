@@ -3,15 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using BestHTTP;
 using BestHTTP.WebSocket;
+using ProtoData;
 using UnityEngine;
 
 namespace FATRequest{
     public class WebSocketManager
     {
-        public string address = "";
+        private string address = "ws://" + NetConfig.Host;
         private static WebSocketManager instance;
         private WebSocket bestHttpSocket;
-		
+        public object parameters;
+        public SerializationType serializationType = SerializationType.Json;
+        public MessagesIDS messageId;
+
+
         public static WebSocketManager GetInstance()
         {
             if (instance == null)
@@ -19,9 +24,34 @@ namespace FATRequest{
 		
             return instance;
         }
+
+        public void Send()
+        {
+            //序列化参数
+            byte[] sendData = GetRawData();
+            SendMessage(sendData);
+            
+        }
+        
+        private byte[] GetRawData()
+        {
+            byte[] rawData = null;
+            switch (serializationType)
+            {
+                case SerializationType.Json:
+                    rawData = JsonTool.JsonDataFromObject(parameters);
+                    break;
+                case SerializationType.Protobuf:
+                    rawData = ProtocolBufferTool.DataFromObject(messageId,parameters);
+                    break;
+                default:
+                    break;
+            }
+            return rawData;
+        }
         
         //发送socket消息前要确保已经有连接完成的websocket 连接了
-        public void SendMessage(byte[] data)
+        private void SendMessage(byte[] data)
         {
             //验证消息是否合法
             if (data.Length == 0)
@@ -35,11 +65,45 @@ namespace FATRequest{
                 return;
             }
             
-            //todo:发送的data需要可定制化
             //发送
             bestHttpSocket.Send(data);
         }
 
+        public void CloseConnect()
+        {
+            if (bestHttpSocket == null)
+            {
+                Debug.Log("websocket 连接已经断开");
+                return;
+            }
+            bestHttpSocket.Close();
+        }
+        
+//        private void AddCustomHeaderFields()
+//        {
+//            StringBuilder sb = new StringBuilder();
+//            switch (serializationType)
+//            {
+//                case SerializationType.Json:
+//                    sb.Append("jsx_json");
+//                    break;
+//                case SerializationType.Protobuf:
+//                    sb.Append("gpb");
+//                    break;
+//                case SerializationType.MsgPack:
+//                    sb.Append("msgpack");
+//                    break;
+//            }
+//            
+//            httpReq.AddHeader("Proto",sb.ToString());
+//            httpReq.AddHeader("MsgCarrier","false");
+//            httpReq.AddHeader("Appid","Appid");
+//            httpReq.AddHeader("Time",GetTimeStampSeconds());
+//            httpReq.AddHeader("Pver",DeviceInfo.appver);
+//            httpReq.AddHeader("Sign","Sign");
+//            httpReq.AddHeader("Session","Session");
+//        }
+        
         //初始化的时候建立一条长连接
         public void Connect()
         {
@@ -52,6 +116,9 @@ namespace FATRequest{
             bestHttpSocket = new WebSocket(new Uri(address));
 
             
+            bestHttpSocket.InternalRequest.AddHeader("Proto","gpb");
+            bestHttpSocket.InternalRequest.AddHeader("MsgCarrier","false");
+
             //开启心跳包连接
             bestHttpSocket.StartPingThread = true;
 #if !BESTHTTP_DISABLE_PROXY && !UNITY_WEBGL
@@ -92,9 +159,116 @@ namespace FATRequest{
         /// <summary>
         ///  Called when a new binary message is received from the server.
         /// </summary>
-        private void OnBinaryReceived(WebSocket websocket, byte[] data)
+        private void OnBinaryReceived(WebSocket websocket, byte[] data)+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         {
             Debug.Log("this is received data");
+            ByteBuffer buffer = new ByteBuffer(data);
+            string messageName = buffer.ReadString();
+            if (messageName.Contains("register_s2c"))
+            {
+                register_s2c re = ProtocolBufferTool.ObjectFromData<register_s2c>(MessagesIDS.Register,data);
+                Debug.Log(re.name);
+            }
+            
         }
 
         /// <summary>

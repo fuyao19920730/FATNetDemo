@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FATRequest
 {
-	//消息和request 的绑定
+	
 	public class RequestManager
 	{
 		public Dictionary<string,List<Action<object>>> Responses = new Dictionary<string, List<Action<object>>>();
@@ -27,7 +27,10 @@ namespace FATRequest
 			List<Action<object>> list;
 			Responses.TryGetValue(cmd, out list);
 			if (list == null)
-			list = new List<Action<object>>();
+			{
+				list = new List<Action<object>>();
+				Responses.Add(cmd, list);
+			}
 			list.Add(callBack);
 		}
 		
